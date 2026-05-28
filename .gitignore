@@ -1,0 +1,14 @@
+# Node modules
+node_modules/
+npm-debug.log
+
+# Security and Keys
+.env
+
+# WhatsApp Auth Session (CRITICAL!)
+# WhatsApp Auth Session (CRITICAL!)
+.wwebjs_auth/
+.wwebjs_cache/
+
+# OS Files
+.DS_Store

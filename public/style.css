@@ -1,0 +1,513 @@
+/* --- 1. GLOBAL & FONTS --- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background-color: #000;
+    color: #e0e0e0;
+    font-family: 'Rajdhani', sans-serif;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    /* Subtle CRT Scanline effect */
+    background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 2px, 3px 100%;
+}
+
+/* --- SIDEBAR (ChatGPT Style) --- */
+.sidebar {
+    width: 260px;
+    background: #000;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    z-index: 100;
+}
+
+.new-chat-btn {
+    background: #00ff88;
+    color: #000;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+
+.new-chat-btn:hover {
+    background: #00cc6a;
+    transform: translateY(-1px);
+}
+
+.section-title {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 10px;
+    padding-left: 10px;
+    letter-spacing: 1px;
+}
+
+.menu-item {
+    padding: 10px;
+    border-radius: 6px;
+    color: #ccc;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background 0.2s;
+    border-left: 2px solid transparent;
+}
+
+.menu-item:hover {
+    background: #111;
+    color: #fff;
+    border-left: 2px solid #00ff88;
+}
+
+/* Scrollbar Hiding */
+#session-list::-webkit-scrollbar { display: none; }
+#session-list { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* User Box - Holographic */
+.user-profile {
+    margin-top: auto;
+    display: flex; align-items: center; gap: 12px;
+    padding: 15px;
+    background: rgba(0, 255, 136, 0.05);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 6px;
+    position: relative;
+}
+/* Tech Corner for User Box */
+.user-profile::after {
+    content: ''; position: absolute; top: -1px; right: -1px;
+    width: 10px; height: 10px;
+    border-top: 2px solid #00ff88; border-right: 2px solid #00ff88;
+}
+.user-profile::before {
+    content: ''; position: absolute; bottom: -1px; left: -1px;
+    width: 10px; height: 10px;
+    border-bottom: 2px solid #00ff88; border-left: 2px solid #00ff88;
+}
+
+.avatar { 
+    width: 35px; height: 35px; 
+    background: #001a0d; 
+    border: 1px solid #00ff88; 
+    border-radius: 50%; 
+    display: grid; place-items: center; 
+    color: #00ff88; 
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+.user-info .username { font-size: 14px; font-weight: bold; letter-spacing: 1px; }
+.user-info .status { font-size: 10px; color: #00ff88; letter-spacing: 1px; }
+
+
+/* --- 3. MAIN CONTENT --- */
+.main-content {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#canvas-container {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0;
+}
+
+/* --- HUD HEADER --- */
+.hud-container {
+    width: 90%;
+    max-width: 900px;
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    z-index: 2;
+    position: relative;
+}
+
+.hud-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00ff88, transparent);
+    opacity: 0.6;
+    position: relative;
+}
+/* Animated scanner on the line */
+.hud-line::after {
+    content: ''; position: absolute; top: 0; left: 0; width: 20%; height: 100%;
+    background: #fff;
+    box-shadow: 0 0 10px #fff;
+    opacity: 0.8;
+    animation: scan 4s infinite linear;
+}
+@keyframes scan { 0% { left: 0%; opacity: 0; } 50% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+
+.hud-center { 
+    text-align: center; 
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    padding: 10px 40px;
+    background: rgba(0, 20, 10, 0.6);
+    backdrop-filter: blur(5px);
+    /* Clip path for tech shape */
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.hud-title {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 6px;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+    margin: 0;
+}
+
+.status-wrapper { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px; }
+.status-light { width: 6px; height: 6px; border-radius: 50%; background: #333; transition: 0.3s; }
+.status-light.green { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+.status-light.red { background: #ff3333; box-shadow: 0 0 15px #ff3333; animation: pulse 0.5s infinite; }
+.status-light.orange { background: #ffaa00; box-shadow: 0 0 15px #ffaa00; animation: pulse 1s infinite; }
+.status-light.blue { background: #00ccff; box-shadow: 0 0 15px #00ccff; animation: pulse 1s infinite; }
+
+.hud-subtitle { font-family: 'Courier New', monospace; font-size: 10px; color: #00ff88; letter-spacing: 3px; font-weight: bold; }
+
+/* --- FEED --- */
+#feed {
+    flex: 1;
+    width: 100%;
+    max-width: 900px;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 2;
+    scrollbar-width: none;
+}
+
+/* Chat Messages - Tech Containers */
+.message {
+    padding: 15px 25px;
+    max-width: 80%;
+    line-height: 1.6;
+    font-size: 15px;
+    position: relative;
+    backdrop-filter: blur(5px);
+}
+
+.ai-message {
+    align-self: flex-start;
+    background: rgba(10, 20, 15, 0.7);
+    border-left: 3px solid #00ff88;
+    border-top: 1px solid rgba(0, 255, 136, 0.1);
+    border-right: 1px solid rgba(0, 255, 136, 0.1);
+    border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+    color: #e0ffff;
+    border-radius: 0 15px 15px 15px;
+}
+
+.user-message {
+    align-self: flex-end;
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid #00ff88;
+    color: #fff;
+    border-radius: 15px 15px 0 15px;
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.1);
+}
+
+/* --- INPUT PILL (Holographic) --- */
+.input-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 40px;
+    z-index: 10;
+}
+
+.input-pill {
+    width: 60%;
+    min-width: 600px;
+    height: 65px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid #00ff88;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    padding: 0 15px 0 30px;
+    /* Outer and Inner Glow */
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.15), inset 0 0 10px rgba(0, 255, 136, 0.05);
+    transition: box-shadow 0.3s;
+}
+.input-pill:focus-within {
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.3), inset 0 0 15px rgba(0, 255, 136, 0.1);
+}
+
+input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    outline: none;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+input::placeholder { color: #005533; }
+
+.actions { display: flex; align-items: center; gap: 15px; }
+
+.icon-btn {
+    background: none; border: none; color: #00ff88; font-size: 24px; cursor: pointer;
+    transition: 0.2s; opacity: 0.7; filter: drop-shadow(0 0 5px #00ff88);
+}
+.icon-btn:hover { opacity: 1; transform: scale(1.1); }
+
+.send-circle {
+    width: 48px; height: 48px;
+    background: #00ff88;
+    border-radius: 50%;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    color: #000;
+    font-weight: bold;
+    box-shadow: 0 0 15px #00ff88;
+    transition: 0.3s;
+}
+.send-circle:hover { 
+    transform: scale(1.1) rotate(-90deg); /* Little tech rotation on hover */
+    background: #fff;
+    box-shadow: 0 0 25px #fff;
+}
+/* ... [Keep Global Styles, Sidebar, Feed, etc. from previous step] ... */
+
+/* RELEVANT SECTION: Z-INDEX STACKING */
+
+#canvas-container { 
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+    z-index: 0; /* Background */
+}
+
+.voice-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.92); /* Dark overlay */
+    backdrop-filter: blur(10px);
+    z-index: 50; /* On top of Chat Feed */
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity 0.4s ease;
+}
+
+.voice-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#voice-canvas {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+}
+
+.voice-status {
+    position: relative; z-index: 55; margin-top: 250px;
+    font-family: 'Rajdhani', sans-serif; font-size: 24px; letter-spacing: 5px; font-weight: bold;
+    text-shadow: 0 0 15px currentColor;
+    animation: blink 2s infinite;
+}
+
+/* Ensure HUD is visible behind overlay but dimmed */
+.hud-container { z-index: 5; } 
+#feed { z-index: 5; }
+
+/* Input needs to stay reachable or be covered? 
+   Usually overlay covers input. But let's keep input on top just in case. */
+.input-wrapper { z-index: 100; }
+
+/* ... [Existing Styles for Body, Sidebar, etc.] ... */
+
+/* --- FIXED VOICE OVERLAY --- */
+.voice-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    /* Darker overlay for dramatic effect */
+    background: rgba(0, 0, 0, 0.95); 
+    backdrop-filter: blur(20px);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.4s ease;
+}
+
+.voice-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#voice-canvas {
+    /* Large canvas for the wow effect */
+    width: 100% !important; 
+    height: 100% !important;
+}
+
+.voice-status {
+    position: absolute;
+    bottom: 20%; /* Moved down slightly */
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 24px;
+    letter-spacing: 8px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 0 20px currentColor;
+    animation: blink 2s infinite;
+    z-index: 55;
+}
+
+/* Ensure HUD lines don't bleed through overlay */
+.hud-container { z-index: 5; }
+
+/* ... Keep other Sidebar/Input/Feed styles standard from previous fixes ... */
+
+/* --- FIXED VOICE OVERLAY (The "Wow" Background) --- */
+.voice-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    
+    /* ✅ Wow 1: Very Dark + Glassmorphism Blur */
+    background: rgba(0, 0, 0, 0.97); 
+    backdrop-filter: blur(20px); /* Blurs the background globe completely */
+    -webkit-backdrop-filter: blur(20px);
+
+    z-index: 50; /* Above background/feed */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.4s ease;
+}
+
+.voice-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Ensure Canvas is responsive within the overlay */
+#voice-canvas {
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute; top: 0; left: 0;
+}
+
+.voice-status {
+    position: absolute;
+    bottom: 18%; /* Anchored lower for better aesthetics */
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 24px;
+    letter-spacing: 8px;
+    font-weight: 800;
+    color: #fff;
+    
+    /* ✅ Wow 2: Pulsing Glow matching current state color */
+    text-transform: uppercase;
+    text-shadow: 0 0 15px currentColor, 0 0 30px rgba(255, 255, 255, 0.5); 
+    
+    animation: statusPulse 1.5s infinite ease-in-out;
+    z-index: 55;
+}
+
+@keyframes statusPulse {
+    0% { opacity: 0.6; transform: scale(0.98); }
+    50% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0.6; transform: scale(0.98); }
+}
+
+/* HUD Dimming (Header Lines shouldn't bleed through overlay) */
+.hud-container { z-index: 5; position: relative; }
+#feed { z-index: 5; position: relative; }
+
+/* Add to style.css */
+#live-clock {
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); /* Glowing Numbers */
+}
+
+/* --- GLOBAL --- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background-color: #000; color: #e0e0e0; font-family: 'Rajdhani', sans-serif;
+    display: flex; height: 100vh; overflow: hidden;
+    background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 2px, 3px 100%;
+}
+
+.sidebar { width: 280px; background: rgba(5, 10, 8, 0.6); backdrop-filter: blur(15px); border-right: 1px solid rgba(0, 255, 136, 0.2); padding: 25px; display: flex; flex-direction: column; z-index: 50; }
+
+/* ✅ GLITCH LOGO ANIMATION */
+.glitch-wrapper { margin-bottom: 30px; font-weight: 800; font-size: 24px; letter-spacing: 4px; }
+.glitch { position: relative; color: #fff; }
+.glitch::before, .glitch::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; }
+.glitch::before { left: 2px; text-shadow: -1px 0 #ff00c1; clip: rect(44px, 450px, 56px, 0); animation: glitch-anim 5s infinite linear alternate-reverse; }
+.glitch::after { left: -2px; text-shadow: -1px 0 #00fff9; clip: rect(44px, 450px, 56px, 0); animation: glitch-anim2 5s infinite linear alternate-reverse; }
+
+@keyframes glitch-anim {
+    0% { clip: rect(35px, 9999px, 16px, 0); } 10% { clip: rect(12px, 9999px, 43px, 0); }
+    20% { clip: rect(9px, 9999px, 12px, 0); } 100% { clip: rect(69px, 9999px, 83px, 0); }
+}
+@keyframes glitch-anim2 {
+    0% { clip: rect(15px, 9999px, 66px, 0); } 10% { clip: rect(2px, 9999px, 93px, 0); }
+    20% { clip: rect(29px, 9999px, 82px, 0); } 100% { clip: rect(39px, 9999px, 13px, 0); }
+}
+
+.new-chat-btn { background: linear-gradient(90deg, rgba(0, 255, 136, 0.1), transparent); color: #00ff88; border: 1px solid #00ff88; padding: 14px; border-radius: 4px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 700; margin-bottom: 30px; transition: 0.3s; width: 100%; }
+.new-chat-btn:hover { background: #00ff88; color: #000; box-shadow: 0 0 20px #00ff88; }
+.section-title { font-size: 10px; color: #00ff88; opacity: 0.6; font-weight: 700; letter-spacing: 2px; margin: 20px 0 10px 0; }
+.menu-item { font-size: 14px; color: #aaa; margin-bottom: 12px; cursor: pointer; }
+.user-profile { display: flex; align-items: center; gap: 12px; padding: 15px; background: rgba(0, 20, 10, 0.6); border: 1px solid #00ff88; border-radius: 6px; }
+.avatar { width: 35px; height: 35px; background: #001a0d; border: 1px solid #00ff88; border-radius: 50%; display: grid; place-items: center; color: #00ff88; }
+
+.main-content { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; }
+#canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+
+.hud-container { width: 90%; max-width: 900px; margin-top: 40px; display: flex; align-items: center; justify-content: center; gap: 15px; z-index: 5; position: relative; }
+.hud-line { flex: 1; height: 2px; background: linear-gradient(90deg, transparent, #00ff88, transparent); opacity: 0.6; }
+.hud-center { text-align: center; border: 1px solid rgba(0, 255, 136, 0.3); padding: 10px 40px; background: rgba(0, 20, 10, 0.6); backdrop-filter: blur(5px); }
+.hud-title { font-size: 28px; font-weight: 800; letter-spacing: 6px; color: #fff; text-shadow: 0 0 20px rgba(0, 255, 136, 0.8); margin: 0; }
+.status-wrapper { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px; }
+.status-light { width: 6px; height: 6px; border-radius: 50%; background: #333; }
+.status-light.green { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+.status-light.red { background: #ff3333; box-shadow: 0 0 15px #ff3333; }
+.status-light.orange { background: #ffaa00; box-shadow: 0 0 15px #ffaa00; }
+.status-light.blue { background: #00ccff; box-shadow: 0 0 15px #00ccff; }
+.hud-subtitle { font-family: 'Courier New', monospace; font-size: 10px; color: #00ff88; letter-spacing: 3px; font-weight: bold; }
+
+#feed { flex: 1; width: 100%; max-width: 900px; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; z-index: 5; scrollbar-width: none; }
+.message { padding: 15px 25px; max-width: 80%; line-height: 1.6; font-size: 15px; position: relative; backdrop-filter: blur(5px); }
+.ai-message { background: rgba(10, 20, 15, 0.7); border-left: 3px solid #00ff88; border: 1px solid rgba(0, 255, 136, 0.1); color: #e0ffff; border-radius: 0 15px 15px 15px; }
+.user-message { align-self: flex-end; background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; color: #fff; border-radius: 15px 15px 0 15px; }
+
+.input-wrapper { width: 100%; display: flex; justify-content: center; padding-bottom: 40px; z-index: 100; position: relative; }
+.input-pill { width: 60%; min-width: 600px; height: 65px; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); border: 1px solid #00ff88; border-radius: 50px; display: flex; align-items: center; padding: 0 15px 0 30px; box-shadow: 0 0 20px rgba(0, 255, 136, 0.15); }
+input { flex: 1; background: transparent; border: none; color: #fff; font-family: 'Courier New', monospace; font-size: 16px; outline: none; }
+.actions { display: flex; align-items: center; gap: 15px; }
+.icon-btn { background: none; border: none; color: #00ff88; font-size: 24px; cursor: pointer; transition: 0.2s; }
+.send-circle { width: 48px; height: 48px; background: #00ff88; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; color: #000; }
+
+.voice-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.97); backdrop-filter: blur(20px); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.4s ease; pointer-events: none; }
+.voice-overlay.hidden { opacity: 0; }
+#voice-canvas { width: 100% !important; height: 100% !important; position: absolute; top: 0; left: 0; }
+.voice-status { position: absolute; bottom: 18%; font-family: 'Rajdhani', sans-serif; font-size: 24px; letter-spacing: 8px; font-weight: 800; color: #fff; text-transform: uppercase; text-shadow: 0 0 15px currentColor; animation: statusPulse 1.5s infinite ease-in-out; z-index: 55; }
+@keyframes statusPulse { 0% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.98); } }

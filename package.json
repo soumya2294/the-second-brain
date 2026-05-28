@@ -1,0 +1,29 @@
+{
+  "name": "the-second-brain",
+  "version": "1.0.0",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "loudness": "^0.4.2",
+    "multer": "^2.0.2",
+    "nodemon": "^3.1.11",
+    "open": "^11.0.0",
+    "pg": "^8.16.3",
+    "puppeteer": "^24.34.0",
+    "qrcode-terminal": "^0.12.0",
+    "systeminformation": "^5.30.0",
+    "whatsapp-web.js": "github:pedroslopez/whatsapp-web.js#main"
+  }
+}
