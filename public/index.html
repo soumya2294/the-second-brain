@@ -5,15 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>N.E.X.U.S</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700;800&family=Courier+New&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     
     <script src="//cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
 
     <div class="sidebar">
+        <div id="lock-screen" class="lock-screen">
+        <div class="cyber-grid"></div>
+
+        <div id="scan-phase" class="neon-scanner-ui">
+            <div class="bracket top-left"></div>
+            <div class="bracket top-right"></div>
+            <div class="bracket bottom-left"></div>
+            <div class="bracket bottom-right"></div>
+            
+            <div class="scanner-laser"></div>
+
+            <svg class="neon-avatar" viewBox="0 0 100 100" fill="none" stroke="#00ff88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20,85 C20,70 35,65 50,65 C65,65 80,70 80,85" />
+                <path d="M35,45 C35,65 42,70 50,70 C58,70 65,65 65,45" />
+                <path d="M33,45 C30,25 40,15 50,15 C65,15 70,30 67,45" />
+                <path d="M35,45 C32,45 32,52 36,52 M65,45 C68,45 68,52 64,52" />
+            </svg>
+
+            <div id="hud-rings" class="hud-rings">
+                <div class="hud-ring r1"></div>
+                <div class="hud-ring r2"></div>
+                <div class="hud-ring r3"></div>
+            </div>
+        </div>
+
+        <div id="granted-phase" class="granted-ui hidden">
+            <div class="granted-rings">
+                <div class="hud-ring cyan-r1"></div>
+                <div class="hud-ring cyan-r2"></div>
+            </div>
+            <svg class="check-icon" viewBox="0 0 50 50" fill="none" stroke="#00d4ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="10,25 22,38 42,12"></polyline>
+            </svg>
+            <div class="granted-text">ACCESS GRANTED</div>
+            <div class="granted-hash">033474614557221-802388249</div>
+        </div>
+
+        <div id="status-text" class="lock-text glitch" data-text="AWAITING COMMANDER BIOMETRICS">AWAITING COMMANDER BIOMETRICS</div>
+    </div>
         <div class="logo glitch-wrapper">
             <div class="glitch" data-text="N.E.X.U.S">N.E.X.U.S</div>
         </div>
@@ -118,5 +160,6 @@
     <script src="bg.js"></script>
     <script src="voiceOrb.js"></script>
     <script src="app.js"></script>
+    
 </body>
 </html>

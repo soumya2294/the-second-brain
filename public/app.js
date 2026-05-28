@@ -543,3 +543,98 @@ function stopCamera() {
     sendBtn.addEventListener('click', sendMessage);
     userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 });
+
+// ==========================================
+// 🔒 N.E.X.U.S BIOMETRIC AI CORE
+// ==========================================
+let isUnlocked = false;
+
+// 1. Create a hidden camera feed (Safe Method)
+const hiddenVideo = document.createElement('video');
+hiddenVideo.autoplay = true;
+hiddenVideo.playsInline = true;
+
+// Trick the browser: Make it invisible instead of completely removing it
+hiddenVideo.style.position = 'absolute';
+hiddenVideo.style.opacity = '0';
+hiddenVideo.style.width = '1px';
+hiddenVideo.style.height = '1px';
+
+document.body.appendChild(hiddenVideo);
+
+// 2. Initialize Google MediaPipe Face AI
+const faceDetection = new FaceDetection({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
+});
+
+faceDetection.setOptions({
+    model: 'short', // 'short' is best for laptop/webcam distance
+    minDetectionConfidence: 0.85 // Requires 85% match confidence
+});
+
+// 3. What happens when the AI sees a face
+faceDetection.onResults((results) => {
+    // If it sees a face AND the system is still locked...
+    if (results.detections.length > 0 && !isUnlocked) {
+        isUnlocked = true; // Flip the switch so it doesn't trigger twice
+        console.log("👁️ Commander Detected. Initiating Unlock Sequence.");
+        triggerBiometricUnlock();
+    }
+});
+
+// 4. Turn on the webcam and start feeding frames to the AI
+const biometricCam = new Camera(hiddenVideo, {
+    onFrame: async () => {
+        await faceDetection.send({image: hiddenVideo});
+    },
+    width: 640,
+    height: 480
+});
+biometricCam.start();
+
+
+// ==========================================
+// 🎬 THE CINEMATIC UI SEQUENCE
+// ==========================================
+function triggerBiometricUnlock() {
+    const scanPhase = document.getElementById('scan-phase');
+    const hudRings = document.getElementById('hud-rings');
+    const grantedPhase = document.getElementById('granted-phase');
+    const statusText = document.getElementById('status-text');
+    const lockScreen = document.getElementById('lock-screen');
+
+    // PHASE 2: Expand HUD Rings (After 1.5 seconds of scanning)
+    setTimeout(() => {
+        hudRings.classList.add('active');
+        statusText.innerText = "ANALYZING BIOMETRIC DATA...";
+        statusText.setAttribute('data-text', "ANALYZING BIOMETRIC DATA...");
+    }, 1500);
+
+    // PHASE 3: Access Granted (After 3.5 seconds)
+    setTimeout(() => {
+        scanPhase.classList.add('hidden'); // Hide Green Scanner
+        grantedPhase.classList.remove('hidden'); // Show Cyan Checkmark
+        
+        statusText.innerText = "IDENTITY VERIFIED";
+        statusText.setAttribute('data-text', "IDENTITY VERIFIED");
+        statusText.style.color = "#00d4ff"; // Change text to Cyan
+
+        // Play the success beep
+        const audio = new Audio('https://www.soundjay.com/buttons/beep-07.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+    }, 3500);
+
+    // PHASE 4: Slide the Vault Door Open (After 5.5 seconds)
+    setTimeout(() => {
+        lockScreen.classList.add('unlocked');
+        
+        // Start your N.E.X.U.S chat systems here!
+        if (typeof addMessage === 'function') {
+            addMessage("🛡️ Security Protocol bypassed. Welcome back, Commander.", "ai");
+        }
+        
+        // If you have your voice wake-word function, uncomment the line below to start listening!
+        // initWakeWord(); 
+    }, 5500);
+}

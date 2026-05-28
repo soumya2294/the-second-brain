@@ -511,3 +511,111 @@ input { flex: 1; background: transparent; border: none; color: #fff; font-family
 #voice-canvas { width: 100% !important; height: 100% !important; position: absolute; top: 0; left: 0; }
 .voice-status { position: absolute; bottom: 18%; font-family: 'Rajdhani', sans-serif; font-size: 24px; letter-spacing: 8px; font-weight: 800; color: #fff; text-transform: uppercase; text-shadow: 0 0 15px currentColor; animation: statusPulse 1.5s infinite ease-in-out; z-index: 55; }
 @keyframes statusPulse { 0% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.98); } }
+
+/* =========================================
+   🔒 N.E.X.U.S CINEMATIC BIOMETRIC HUD
+========================================= */
+.lock-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #050a08;
+    z-index: 2147483647 !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 1.5s ease-out, visibility 1.5s;
+    overflow: hidden;
+}
+
+body:has(.lock-screen:not(.unlocked)) .input-wrapper {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+.lock-screen.unlocked { opacity: 0; visibility: hidden; }
+
+/* Grid Background */
+.cyber-grid {
+    position: absolute; width: 200%; height: 200%;
+    background-image: 
+        linear-gradient(rgba(0, 255, 136, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 136, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+    z-index: 0;
+}
+
+/* --- PHASE 1: SCANNER --- */
+.neon-scanner-ui {
+    position: relative; width: 180px; height: 180px; margin-bottom: 40px;
+    display: flex; align-items: center; justify-content: center; z-index: 2;
+    transition: opacity 0.3s;
+}
+
+.neon-scanner-ui.hidden { opacity: 0; pointer-events: none; display: none; }
+
+.bracket { position: absolute; width: 30px; height: 30px; border-color: #00ff88; border-style: solid; filter: drop-shadow(0 0 6px #00ff88); }
+.top-left { top: 0; left: 0; border-width: 3px 0 0 3px; }
+.top-right { top: 0; right: 0; border-width: 3px 3px 0 0; }
+.bottom-left { bottom: 0; left: 0; border-width: 0 0 3px 3px; }
+.bottom-right { bottom: 0; right: 0; border-width: 0 3px 3px 0; }
+
+.neon-avatar { width: 120px; height: 120px; filter: drop-shadow(0 0 8px #00ff88); }
+
+.scanner-laser {
+    position: absolute; left: -10%; width: 120%; height: 2px;
+    background: #d900ff; /* Purple Laser */
+    box-shadow: 0 0 10px 2px #d900ff, 0 0 20px 2px rgba(217, 0, 255, 0.5);
+    z-index: 10;
+    animation: laser-sweep 2s linear infinite alternate;
+}
+
+/* --- PHASE 2: EXPANDING HUD RINGS --- */
+.hud-rings {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 100%; height: 100%;
+    opacity: 0; transition: opacity 0.5s, transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: translate(-50%, -50%) scale(0.5);
+}
+
+.hud-rings.active { opacity: 1; transform: translate(-50%, -50%) scale(1.8); }
+
+.hud-ring {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    border-radius: 50%; border: 1px solid rgba(0, 255, 136, 0.4);
+}
+.hud-ring::before { /* The little tech nodes on the rings */
+    content: ''; position: absolute; top: -3px; left: 50%; width: 6px; height: 6px;
+    background: #00ff88; border-radius: 50%; box-shadow: 0 0 10px #00ff88;
+}
+
+.r1 { width: 100%; height: 100%; animation: spin 4s linear infinite; border: 2px dashed rgba(0, 255, 136, 0.6); }
+.r2 { width: 120%; height: 120%; animation: spin-reverse 6s linear infinite; }
+.r3 { width: 140%; height: 140%; animation: spin 8s linear infinite; border: 1px dotted rgba(0, 255, 136, 0.8); }
+
+/* --- PHASE 3: ACCESS GRANTED --- */
+.granted-ui {
+    position: relative; width: 250px; height: 250px; margin-bottom: 40px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2;
+    animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.granted-ui.hidden { display: none; }
+
+.granted-rings { position: absolute; width: 100%; height: 100%; }
+.cyan-r1 { width: 100%; height: 100%; border-color: #00d4ff; animation: spin 4s linear infinite; }
+.cyan-r1::before { background: #00d4ff; box-shadow: 0 0 10px #00d4ff; }
+.cyan-r2 { width: 120%; height: 120%; border-color: rgba(0, 212, 255, 0.4); border-style: dashed; animation: spin-reverse 6s linear infinite; }
+
+.check-icon { width: 80px; height: 80px; filter: drop-shadow(0 0 10px #00d4ff); margin-bottom: 10px; }
+.granted-text { font-family: 'Courier New', monospace; font-size: 22px; font-weight: bold; color: #00d4ff; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 212, 255, 0.8); }
+.granted-hash { font-family: 'Courier New', monospace; font-size: 10px; color: #aaa; margin-top: 5px; }
+
+/* --- ANIMATIONS --- */
+@keyframes laser-sweep { 0% { top: 5%; opacity: 0.5; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { top: 95%; opacity: 0.5; } }
+@keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes spin-reverse { 100% { transform: translate(-50%, -50%) rotate(-360deg); } }
+@keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
