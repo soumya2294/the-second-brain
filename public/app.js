@@ -495,7 +495,7 @@ function stopCamera() {
         feed.scrollTop = feed.scrollHeight;
     }
 
-    function renderResponse(data) {
+  function renderResponse(data) {
         if (data.type === 'system_op') addMessage(`⚙️ ${data.response}`, 'ai');
         else if (data.type === 'chat') addMessage(data.response, 'ai');
         else if (data.type === 'call') { 
@@ -511,6 +511,10 @@ function stopCamera() {
             feed.appendChild(div); 
         }
         else if (data.type === 'todo') addMessage(`📝 <b>Task Added:</b><br>"${data.response}"`, 'ai'); 
+        
+        // 👇 ADD THIS NEW LINE RIGHT HERE 👇
+        else if (data.type === 'complete_task') addMessage(`✅ <b>Task Completed:</b><br>"${data.response}"`, 'ai');
+        
         else if (data.type === 'event') { 
             const div = document.createElement('div'); 
             div.innerHTML = `📅 <b>Scheduled:</b> ${data.title}`; 
@@ -545,52 +549,121 @@ function stopCamera() {
 });
 
 // ==========================================
-// 🔒 N.E.X.U.S BIOMETRIC AI CORE
+// 🔒 N.E.X.U.S TRUE IDENTITY CORE (face-api.js)
 // ==========================================
 let isUnlocked = false;
 
-// 1. Create a hidden camera feed (Safe Method)
+// 1. Create the hidden scanner feed
 const hiddenVideo = document.createElement('video');
 hiddenVideo.autoplay = true;
 hiddenVideo.playsInline = true;
-
-// Trick the browser: Make it invisible instead of completely removing it
 hiddenVideo.style.position = 'absolute';
 hiddenVideo.style.opacity = '0';
 hiddenVideo.style.width = '1px';
 hiddenVideo.style.height = '1px';
-
 document.body.appendChild(hiddenVideo);
 
-// 2. Initialize Google MediaPipe Face AI
-const faceDetection = new FaceDetection({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
-});
+// 2. Load the Neural Network Models
+async function bootBiometrics() {
+    console.log("⏳ Downloading N.E.X.U.S Biometric Models...");
+    
+    // We load models from a public raw github repository for ease
+    const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+    
+    await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+    ]);
 
-faceDetection.setOptions({
-    model: 'short', // 'short' is best for laptop/webcam distance
-    minDetectionConfidence: 0.85 // Requires 85% match confidence
-});
+    console.log("✅ Models Loaded. Igniting Scanner...");
+    startScanner();
+}
 
-// 3. What happens when the AI sees a face
-faceDetection.onResults((results) => {
-    // If it sees a face AND the system is still locked...
-    if (results.detections.length > 0 && !isUnlocked) {
-        isUnlocked = true; // Flip the switch so it doesn't trigger twice
-        console.log("👁️ Commander Detected. Initiating Unlock Sequence.");
-        triggerBiometricUnlock();
+// 3. Ignite the Camera
+async function startScanner() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+        hiddenVideo.srcObject = stream;
+    } catch (err) {
+        console.error("🚨 Camera access denied or unavailable.");
     }
+}
+
+// 4. The Continuous Analysis Loop
+// ==========================================
+// 🛡️ N.E.X.U.S SECURITY AUTHENTICATION 
+// ==========================================
+
+// 1. PASTE YOUR 128 FACE NUMBERS HERE
+const COMMANDER_SIGNATURE = new Float32Array([
+ 
+    -0.1418767273426056, 0.06442796438932419, 0.09180968254804611, -0.01148572564125061,
+    -0.02591037005186081, -0.07486117631196976, 0.04306484013795853, -0.1284501701593399,
+    0.18662799894809723, -0.09862048923969269, 0.2182217240333557, -0.033620692789554596,
+    -0.21710525453090668, -0.15521851181983948, 0.032459717243909836, 0.11261563003063202,
+    -0.1832398772239685, -0.14344540238380432, -0.010021915659308434, -0.08875370770692825,
+    0.054799631237983704, -0.0032250864896923304, -0.00005720065382774919, 0.08526425063610077,
+    -0.10450201481580734, -0.3671775758266449, -0.09674952179193497, -0.14648175239562988,
+    0.09812752157449722, -0.05792255327105522, -0.04855893552303314, 0.052729591727256775,
+    -0.18393713235855103, -0.0028421725146472454, -0.06335459649562836, 0.025692855939269066,
+    0.02268802374601364, -0.022409562021493912, 0.18366245925426483, -0.017649386078119278,
+    -0.20010022819042206, -0.10128368437290192, 0.0271009374409914, 0.22954827547073364,
+    0.18511159718036652, 0.048817139118909836, 0.0018005619058385491, -0.04251773655414581,
+    0.06495118141174316, -0.1330631524324417, 0.008062965236604214, 0.14692296087741852,
+    0.11360621452331543, 0.004365956410765648, 0.023748056963086128, -0.1471450924873352,
+    -0.05662326514720917, -0.018691953271627426, -0.20537060499191284, 0.058806732296943665,
+    0.0398164726793766, -0.14783717691898346, -0.09487255662679672, -0.0464990958571434,
+    0.23315928876399994, 0.06809297949075699, -0.07948467135429382, -0.1389542669057846,
+    0.1808561533689499, -0.26461178064346313, -0.05034096911549568, 0.07966331392526627,
+    -0.10897689312696457, -0.1666438728570938, -0.2889537215232849, 0.03182569146156311,
+    0.3481394350528717, 0.15536874532699585, -0.14270202815532684, 0.07884187996387482,
+    -0.08461673557758331, -0.021264169365167618, 0.1407736837863922, 0.11797890812158585,
+    -0.08566385507583618, 0.09247874468564987, -0.10667860507965088, 0.022480789572000504,
+    0.16164205968379974, -0.018974391743540764, -0.01380695216357708, 0.2169209122657776,
+    -0.03934042900800705, 0.06385990232229233, -0.004002358298748732, -0.06651945412158966,
+    -0.022579576820135117, 0.016517464071512222, -0.10496696829795837, -0.030605504289269447,
+    0.07761340588331223, -0.03231305256485939, 0.06247614324092865, 0.06196599081158638,
+    -0.16223643720149994, 0.054674841463565826, 0.03875839337706566, -0.009934870526194572,
+    0.019208917394280434, 0.01873704046010971, -0.1578199863433838, -0.10791042447090149,
+    0.14755412936210632, -0.22461962699890137, 0.17297051846981049, 0.16926181316375732,
+    0.04013286158442497, 0.14116673171520233, 0.06797680258750916, 0.09179198741912842,
+    -0.02700468897819519, -0.08134406805038452, -0.13098764419555664, 0.025220688432455063,
+    0.12638936936855316, -0.07041855156421661, 0.1169903427362442, -0.005302673205733299
+]);
+
+// 2. The Euclidean Security Loop
+hiddenVideo.addEventListener('play', () => {
+    setInterval(async () => {
+        if (isUnlocked) return;
+
+        // Scan the camera
+        const detection = await faceapi.detectSingleFace(hiddenVideo, new faceapi.TinyFaceDetectorOptions())
+                                       .withFaceLandmarks()
+                                       .withFaceDescriptor();
+
+        if (detection) {
+            // Calculate the mathematical distance between the camera face and YOUR face
+            const distance = faceapi.euclideanDistance(COMMANDER_SIGNATURE, detection.descriptor);
+            console.log(`🛡️ Scan complete. Distance Variance: ${distance.toFixed(2)}`);
+
+            // The lower the distance, the closer the match. 
+            // 0.45 is a highly secure threshold. Anything above it is locked out.
+            if (distance < 0.45 && !isUnlocked) {
+                console.log("🟢 BIOMETRIC MATCH CONFIRMED. Welcome back, Commander.");
+                isUnlocked = true;
+                triggerBiometricUnlock(); 
+            } else if (distance >= 0.45) {
+                console.log("🔴 ACCESS DENIED. Unknown entity detected.");
+            }
+        }
+    }, 500); // Scan twice a second
 });
 
-// 4. Turn on the webcam and start feeding frames to the AI
-const biometricCam = new Camera(hiddenVideo, {
-    onFrame: async () => {
-        await faceDetection.send({image: hiddenVideo});
-    },
-    width: 640,
-    height: 480
+/// Boot the system ONLY after everything is fully loaded
+window.addEventListener('load', () => {
+    bootBiometrics();
 });
-biometricCam.start();
 
 
 // ==========================================

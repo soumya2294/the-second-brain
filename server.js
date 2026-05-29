@@ -219,7 +219,22 @@ async function addToDoList(task) {
         return `Active Order Updated: "${task}"`;
     } catch (e) { return "Database write failed."; }
 }
-
+async function completeTask(taskName) {
+    if (!taskName) return "Error: Missing task name.";
+    try {
+        const res = await pool.query(
+            "UPDATE tasks SET status = 'completed' WHERE description ILIKE $1 RETURNING description", 
+            [`%${taskName}%`]
+        );
+        if (res.rows.length > 0) {
+            return `Crossed off: "${res.rows[0].description}"`;
+        } else {
+            return `Could not find a pending task matching "${taskName}".`;
+        }
+    } catch (e) { 
+        return "Database update failed."; 
+    }
+}
 // ==================================================
 // 5. CORE PROCESSOR
 // ==================================================
@@ -231,10 +246,23 @@ async function processInput(userInput, filePart = null) {
     const sessionId = await getActiveSession();
     const chatHistory = await getRecentContext(sessionId);
 
+    let activeTasks = "None";
+    try {
+        const tasksRes = await pool.query("SELECT description FROM tasks WHERE status = 'pending'");
+        if (tasksRes.rows.length > 0) {
+            activeTasks = tasksRes.rows.map(t => t.description).join(', ');
+        }
+    } catch (e) {
+        activeTasks = "Database error reading tasks.";
+    }
+
     let promptParts = [`
-    SYSTEM: You are N.E.X.U.S. (Neural Enhanced X-class Utility System).
+    SYSTEM: You are the core intelligence of The Second Brain.
     PERSONALITY: Intelligent, witty, and helpful.
     CONTEXT: Today is ${new Date().toLocaleString()}.
+    
+    CURRENT PENDING TASKS & EVENTS:
+    ${activeTasks}
     
     MEMORY (Last 10 interactions):
     ${chatHistory}
@@ -251,6 +279,7 @@ async function processInput(userInput, filePart = null) {
     - WhatsApp -> {"type": "whatsapp", "to": "name/number", "message": "content"}
     - Schedule -> {"type": "event", "title": "Meeting name", "time": "5 PM"}
     - ToDo -> {"type": "todo", "task": "Buy milk"}
+    - Complete Task -> {"type": "complete_task", "task": "Buy milk"}
     - Chat -> {"type": "chat", "response": "Your reply here"}
     
     USER INPUT: "${userInput}"
@@ -271,7 +300,6 @@ async function processInput(userInput, filePart = null) {
         }
         if (typeof data.response === 'object') data.response = JSON.stringify(data.response);
 
-        // --- Execute Actions ---
         if (data.type === 'system_op') {
             if (data.action === 'open') data.response = await openApp(data.target);
             else if (data.action === 'volume') data.response = await setVolume(data.value);
@@ -291,7 +319,10 @@ async function processInput(userInput, filePart = null) {
             data.response = await addToDoList(task); 
         }
 
-        // ✅ Restored Event Handling
+        if (data.type === 'complete_task') {
+            data.response = await completeTask(data.task);
+        }
+
         if (data.type === 'event') {
             data.response = await scheduleEvent(data.title, data.time);
         }
@@ -302,11 +333,10 @@ async function processInput(userInput, filePart = null) {
         return data;
 
     } catch (error) {
-        console.error("❌ Critical Processing Error:", error);
+        console.error("Critical Processing Error:", error);
         return { type: "chat", response: "I encountered a neural interference. Please try again." };
     }
 }
-
 // ==================================================
 // 6. API ROUTES
 // ==================================================
